@@ -18,8 +18,7 @@ def exercise9(**kwargs):
     Impairment: modify the parameter impairment, or witha for loop over the values of 1,2,3 to see the effect asked
     """
     n_iterations= 5001
-    w=0.25 # weight of the feedback
-    impairment = 1# 0=No impairment, 1=ipsilateral cutoff, 2=contralateral cutoff, 3=both ipsi and contralateral cutoff
+    w=0.25 # weight of the feedback, TODO need to change also
         
     impairment_map = {
         0: "No impairment",
@@ -27,6 +26,7 @@ def exercise9(**kwargs):
         2: "Contralateral cutoff",
         3: "Ipsi and Contralateral cutoff"
     }
+    impairment = 3# 0=No impairment, 1=ipsilateral cutoff, 2=contralateral cutoff, 3=both ipsi and contralateral cutoff
     impairment_string = impairment_map.get(impairment)
     pylog.info("Ex 9")
     pylog.info("Implement exercise 9")
@@ -39,7 +39,7 @@ def exercise9(**kwargs):
             0.01115, 0.01149, 0.01655,
         ]
     )
-    all_pars = SimulationParameters(
+    all_pars_list = [SimulationParameters(
         n_iterations       = n_iterations,
         controller         = "abstract oscillator",
         log_path           = log_path,
@@ -53,17 +53,18 @@ def exercise9(**kwargs):
         feedback_weights_contra = -w*ws_ref,
         impairment = impairment, # 0=No impairment, 1=ipsilateral cutoff, 2=contralateral cutoff, 3=both ipsi and contralateral cutoff
         **kwargs
-    )
+    ) for impairment in impairment_map.keys()]
     pylog.info("Running the simulation")
-    controller = run_single(
-        all_pars
+    controllers = run_multiple(
+        all_pars_list
     )
     # Plots, either as in exercise 5 or only what is more interesting
-    plot_trajectory(
-        controller,
-        title=f"Trajectory_{impairment_map.get(impairment)}"
-    )
-    plt.show()
+    for controller in controllers:
+        plot_trajectory(
+            controller,
+            title=f"Trajectory_{impairment_map.get(impairment)}"
+        )
+        plt.show()
 if __name__ == '__main__':
 
     exercise9()
