@@ -1,7 +1,6 @@
 """Oscillator network ODE"""
 
 import numpy as np
-
 class AbstractOscillatorController:
     """zebrafish controller"""
 
@@ -63,6 +62,11 @@ class AbstractOscillatorController:
 
         # pre-computed zero activity for the last two tail joints
         self.zeros4 = np.zeros(4)
+        
+        self.W_ipsi = self.pars.entraining_signals * self.pars.feedback_weights_ipsi
+        self.W_contra = self.pars.entraining_signals * self.pars.feedback_weights_contra
+        self.s = np.zeros(2*self.pars.n_joints)
+        
 
     def update(self, parameters):
         """Update network from parameters"""
@@ -71,7 +75,6 @@ class AbstractOscillatorController:
         self.set_phase_bias(parameters)  # phi_ij
         self.set_amplitudes_rate(parameters)  # a_i
         self.set_nominal_amplitudes(parameters)  # R_i
-
     def set_frequencies(self, parameters):
         """Set frequencies"""
         self.freqs[:self.n_oscillators] = 2*np.pi*(parameters.cpg_frequency_gain*parameters.drive + parameters.cpg_frequency_offset)
@@ -104,6 +107,8 @@ class AbstractOscillatorController:
                 else:
                     self.phase_bias[i, j] = 0
 
+
+
     def set_nominal_amplitudes(self, parameters):
         """Set nominal amplitudes"""
         self.nominal_amplitudes[0:2*parameters.n_joints-1:2] = parameters.drive * parameters.cpg_amplitude_gain
@@ -135,8 +140,12 @@ class AbstractOscillatorController:
             np.expand_dims(phases, axis=1),
             n_oscillators,
             axis=1,
-        )
-
+        ) 
+      
+        s_right = self.W_ipsi * np.maximum(0, pos) + self.W_contra * np.maximum(0, -pos)
+        s_left = self.W_ipsi * np.maximum(0,-pos) + self.W_contra * np.maximum(0,pos)
+        self.s[self.oscillator_phase_l] = s_left
+        self.s[self.oscillator_phase_r] = s_right
         dphases = (
             # Intrinsic frequencies
             self.freqs
@@ -145,12 +154,12 @@ class AbstractOscillatorController:
                 amplitudes * self.coupling_weights.T * np.sin(
                     phase_repeat.T - phase_repeat + self.phase_bias.T),
                 axis=1,
-            )
+            ) - self.s * np.sin(phases) / self.nominal_amplitudes
         )
 
         damplitudes = (
             # Amplitude dynamics
-            self.rates * ( self.nominal_amplitudes - amplitudes)
+            self.rates * ( self.nominal_amplitudes - amplitudes) + self.s * np.cos(phases)
         )
         return np.concatenate([dphases, damplitudes])
 

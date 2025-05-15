@@ -4,6 +4,8 @@ import numpy as np
 import os
 import farms_pylog as pylog
 from matplotlib.colors import LogNorm
+import matplotlib.cm as cm
+
 from scipy.interpolate import griddata
 import matplotlib
 matplotlib.rc('font', **{"size": 20})
@@ -194,6 +196,12 @@ def plot_time_histories(
         if closefig:
             plt.close()
 
+    if title is not None:
+        # Ensure the 'figures' directory exists
+        os.makedirs("figures", exist_ok=True)
+        filename = title
+        filepath = os.path.join("figures", filename)
+        plt.savefig(filepath, dpi=300)
 
 def plot_time_histories_multiple_windows(
     time: np.array,
@@ -338,7 +346,7 @@ def plot_2d(
     cbar.set_label(labels[2])
 
 
-def plot_left_right(times, state, left_idx, right_idx, cm="jet", offset=0.3):
+def plot_left_right(times, state, left_idx, right_idx, title, cm="jet", offset=0.3):
     """
     plotting left and right states
     Inputs:
@@ -359,25 +367,67 @@ def plot_left_right(times, state, left_idx, right_idx, cm="jet", offset=0.3):
     else:
         colors = cm
 
-    plt.subplot(2, 1, 1)
     plot_time_histories(
         times,
         state[:, left_idx],
         offset=-offset,
         colors=colors,
         ylabel="Left",
+        title = title + " _Left"
     )
-    plt.subplot(2, 1, 2)
     plot_time_histories(
         times,
         state[:, right_idx],
         offset=offset,
         colors=colors,
-        ylabel="Right"
+        ylabel="Right",
+        title = title + " _Right"
     )
 
 
-def plot_trajectory(controller, label=None, color=None, sim_fraction=1):
+def plot_lateral_difference(times, state, left_idx,right_idx, title, cm="jet", offset=0.3):
+    """
+    plotting left and right states
+    Inputs:
+    - times: array of times
+    - state: array of states with shape (niterations,nvar)
+    - left_idx: index of the left nvars
+    - right_idx: index of the right nvars
+    - cm(optional): colormap
+    - offset(optional): y-offset for each variable plot
+    """
+
+    n = len(left_idx)
+
+    if cm == "jet":
+        colors = plt.cm.jet(np.linspace(0, 1, n)).tolist()
+    elif cm == "Greens":
+        colors = plt.cm.Greens(np.linspace(0, 1, n)).tolist()
+    else:
+        colors = cm
+
+    plot_time_histories(
+        times,
+        state[:, left_idx]-state[:, right_idx],
+        offset=-offset,
+        colors=colors,
+        ylabel="Left - Right",
+        title = title + " _Left - Right",
+    )
+    
+    plot_time_histories(
+        times,
+        state[:, right_idx]-state[:, left_idx],
+        offset=-offset,
+        colors=colors,
+        ylabel="Right - Left",
+        title = title + " _Right - Left",
+    )
+    
+    
+    
+
+def plot_trajectory( controller, title=None , label=None, color=None, sim_fraction=1):
 
     head_positions = np.array(controller.links_positions)[:, 0, :]
     n_steps = head_positions.shape[0]
@@ -386,12 +436,20 @@ def plot_trajectory(controller, label=None, color=None, sim_fraction=1):
     head_positions = head_positions[-n_steps_considered:, :2]
 
     """Plot head positions"""
-    plt.plot(head_positions[:-1, 0],
-             head_positions[:-1, 1], label=label, color=color)
+    plt.figure()
+    plt.plot(head_positions[:-1, 0], head_positions[:-1, 1], label=label, color=color)
     plt.xlabel('x [m]')
     plt.ylabel('y [m]')
-    plt.axis('equal')
     plt.grid(True)
+    
+    if title is not None:
+       # Ensure the 'figures' directory exists
+        os.makedirs("figures", exist_ok=True)
+        filename=title
+        filepath = os.path.join("figures", filename)
+        
+        plt.savefig(filepath, dpi=300)
+
 
 
 def plot_positions(times, link_data):
@@ -435,3 +493,79 @@ def save_figures(**kwargs):
                 ['png']))
     plt.close('all')
 
+def plot_joint_angles(controller, joints_to_plot, title, amplitudes=None):
+    n_iterations = controller.pars.n_iterations
+    joints_positions = controller.joints_positions[-n_iterations:]
+    #print("Joint positions:", joints_positions)
+    #print("Joint positions shape:", joints_positions)
+    #colors = plt.cm.Set1(range(len(joints_to_plot))).tolist()
+    colors = plt.cm.tab10(range(len(joints_to_plot))).tolist()
+
+    plt.figure(figsize=(12, 6))
+    for idx, i in enumerate(joints_to_plot):
+        plt.plot(controller.times, joints_positions[:, i], label=f'Joint {i}', color=colors[idx])
+        if amplitudes is not None:
+            plt.axhline(y=amplitudes[i], linestyle='--',color=colors[idx])
+
+    plt.xlabel("Time (s)")
+    plt.ylabel("Joint Angle (rad)")
+    plt.title("Zebrafish Joint Angles Over Time")
+    plt.legend(ncol=2, fontsize='small')
+    plt.grid(True)
+    plt.tight_layout()
+    
+    # Ensure the 'figures' directory exists
+    os.makedirs("figures", exist_ok=True)
+    
+    if type (title) == str:
+        filename=title
+        filepath = os.path.join("figures", filename)
+    
+        plt.savefig(filepath, dpi=300)
+    
+    
+    
+    
+    
+def plot_phases_ampl(times, state, title="", xlabel="Time (s)", ylabel="State", legend=False):
+        """
+        Plots time histories for phases and amplitudes from oscillator states.
+
+        Parameters:
+            times (np.array): Time vector of shape (n_iterations,)
+            state (np.array): State matrix of shape (n_iterations, 2*n_oscillators)
+            title (str): Plot title
+            xlabel (str): X-axis label
+            ylabel (str): Y-axis label
+            legend (bool): Whether to show a legend
+        """
+        n_oscillators = state.shape[1] // 2
+        phases = state[:, :n_oscillators]
+        amplitudes = state[:, n_oscillators:]
+
+        fig, axs = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+
+        # Plot phases
+        for i in range(n_oscillators):
+            axs[0].plot(times, phases[:, i], label=f"Phase {i+1}")
+        axs[0].set_ylabel("Phase")
+        axs[0].set_title(f"{title} - Phases")
+        if legend:
+            axs[0].legend(loc="upper right", fontsize="small")
+
+        # Plot amplitudes
+        for i in range(n_oscillators):
+            axs[1].plot(times, amplitudes[:, i], label=f"Amp {i+1}")
+        axs[1].set_xlabel(xlabel)
+        axs[1].set_ylabel("Amplitude")
+        axs[1].set_title(f"{title} - Amplitudes")
+        if legend:
+            axs[1].legend(loc="upper right", fontsize="small")
+        plt.grid(True)
+        
+        # Ensure the 'figures' directory exists
+        os.makedirs("figures", exist_ok=True)
+        filename = title
+        filepath = os.path.join("figures", filename)
+        
+        plt.savefig(filepath, dpi=300)
