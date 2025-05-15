@@ -31,8 +31,8 @@ def exercise6(**kwargs):
     )
 
     # Define range for testing, scaled by ws_ref
-    ipsi_strengths  = np.linspace(-1, 1, 6) 
-    contra_strengths = np.linspace(-1, 1, 6) 
+    ipsi_strengths  = np.linspace(-1, 1, 6) * ws_ref
+    contra_strengths = np.linspace(-1, 1, 6) * ws_ref
 
     # Test ipsilateral feedback variation (contralateral fixed to 0)
     all_pars_list_ipsi = [SimulationParameters(
@@ -45,7 +45,6 @@ def exercise6(**kwargs):
             drive              = 10,
             headless           = True,
             cpg_amplitude_gain = motor_output_gains,
-            entraining_signals = ws_ref,
             feedback_weights_ipsi = w_ipsi,
             feedback_weights_contra = 0,
             **kwargs

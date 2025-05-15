@@ -15,13 +15,39 @@ REF_JOINT_AMP = hyperparameters["REF_JOINT_AMP"]
 ws_ref = hyperparameters["ws_ref"]
 
 
-def exercise7():
+def exercise7(**kwargs):
 
     pylog.info("Ex 7")
     pylog.info("Implement exercise 7")
     log_path = './logs/exercise7/'  # path for logging the simulation data
     os.makedirs(log_path, exist_ok=True)
-
+    motor_output_gains = np.array(
+        [
+            0.00824, 0.00328, 0.00328, 0.00370, 0.00451,
+            0.00534, 0.00628, 0.00680, 0.00803, 0.01084,
+            0.01115, 0.01149, 0.01655,
+        ]
+    )
+    n_iterations= 5001
+    all_pars = SimulationParameters(
+        n_iterations       = n_iterations,
+        controller         = "abstract oscillator",
+        log_path           = log_path,
+        compute_metrics    = 'all',
+        print_metrics      = True,
+        return_network     = True,
+        drive              = 10,
+        headless           = True,
+        cpg_amplitude_gain = motor_output_gains,
+        feedback_weights_ipsi = 0.25*ws_ref,
+        feedback_weights_contra = -0.25*ws_ref,
+        entraining_signals=define_entraining_signals(n_iterations,8,45),
+        **kwargs
+    )
+    pylog.info("Running the simulation")
+    controller = run_single(
+        all_pars
+    )
 
 if __name__ == '__main__':
 

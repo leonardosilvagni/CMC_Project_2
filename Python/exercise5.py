@@ -27,7 +27,7 @@ def exercise5(**kwargs):
         ]
     )
     all_pars = SimulationParameters(
-        n_iterations       = 10001,
+        n_iterations       = 5001,
         controller         = "abstract oscillator",
         log_path           = log_path,
         compute_metrics    = 'all',
@@ -36,12 +36,11 @@ def exercise5(**kwargs):
         drive              = 10,
         headless           = True,
         cpg_amplitude_gain = motor_output_gains,
-        entraining_signals = ws_ref,
-        feedback_weights_ipsi = 0.25,
-        feedback_weights_contra = -0.25,
-        video_record = True,
-        video_name = "exercise5",
-        camera_id=3,
+        feedback_weights_ipsi = 0.25*ws_ref,
+        feedback_weights_contra = -0.25*ws_ref,
+        #video_record = True,
+        #video_name = "exercise5",
+        #camera_id=3,
         
 
         **kwargs

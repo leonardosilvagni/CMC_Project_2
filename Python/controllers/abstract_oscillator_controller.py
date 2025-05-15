@@ -62,9 +62,8 @@ class AbstractOscillatorController:
 
         # pre-computed zero activity for the last two tail joints
         self.zeros4 = np.zeros(4)
-        
-        self.W_ipsi = self.pars.entraining_signals * self.pars.feedback_weights_ipsi
-        self.W_contra = self.pars.entraining_signals * self.pars.feedback_weights_contra
+        self.W_ipsi = self.pars.feedback_weights_ipsi
+        self.W_contra =  self.pars.feedback_weights_contra
         self.s = np.zeros(2*self.pars.n_joints)
         
 
@@ -141,7 +140,8 @@ class AbstractOscillatorController:
             n_oscillators,
             axis=1,
         ) 
-      
+        if pos is None:
+            pos = np.zeros(self.pars.n_joints)
         s_right = self.W_ipsi * np.maximum(0, pos) + self.W_contra * np.maximum(0, -pos)
         s_left = self.W_ipsi * np.maximum(0,-pos) + self.W_contra * np.maximum(0,pos)
         self.s[self.oscillator_phase_l] = s_left
