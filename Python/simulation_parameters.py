@@ -83,7 +83,7 @@ class SimulationParameters:
         self.entraining_signals = None
 
         self.motor_output_scaling = 1  # muscle force scaling factor G
-
+        self.impairment = 0 # CPG 0=No impairment, 1=ipsilateral cutoff, 2=contralateral cutoff, 3=both ipsi and contralateral cutoff
         # NOTE: This overrides the previous declarations
         self.__dict__.update(kwargs)
 

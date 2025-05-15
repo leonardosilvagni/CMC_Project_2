@@ -79,15 +79,19 @@ class AbstractOscillatorController:
         self.freqs[:self.n_oscillators] = 2*np.pi*(parameters.cpg_frequency_gain*parameters.drive + parameters.cpg_frequency_offset)
 
     def set_coupling_weights(self, parameters):
-        """Set coupling weights"""
+        """Set coupling weights with impairment flags"""
         for i in range(self.n_oscillators):
             for j in range(self.n_oscillators):
-                if abs(i-j)==2:
-                    self.coupling_weights[i, j] =  parameters.weights_body2body
-                elif j-i==1 and i%2==0:
-                    self.coupling_weights[i, j] =  parameters.weights_body2body_contralateral
-                elif i-j==1 and i%2==1:
-                    self.coupling_weights[i, j] =  parameters.weights_body2body_contralateral
+                if abs(i - j) == 2:  # Ipsilateral
+                    if self.pars.impairment in [1, 3]:
+                        self.coupling_weights[i, j] = 0
+                    else:
+                        self.coupling_weights[i, j] = parameters.weights_body2body
+                elif (j - i == 1 and i % 2 == 0) or (i - j == 1 and i % 2 == 1):  # Contralateral
+                    if self.pars.impairment in [2, 3]:
+                        self.coupling_weights[i, j] = 0
+                    else:
+                        self.coupling_weights[i, j] = parameters.weights_body2body_contralateral
                 else:
                     self.coupling_weights[i, j] = 0
 
@@ -97,12 +101,21 @@ class AbstractOscillatorController:
         parameters.phase_lag_body /= (parameters.n_joints+parameters.n_passive_joints-1)
         for i in range(self.n_oscillators):
             for j in range(self.n_oscillators):
-                if abs(i-j)==2:
-                    self.phase_bias[i, j] = np.sign(i-j) * parameters.phase_lag_body
-                elif j-i==1 and i%2==0:
-                    self.phase_bias[i, j] = np.sign(i-j) * np.pi
-                elif i-j==1 and i%2==1:
-                    self.phase_bias[i, j] = np.sign(i-j) * np.pi
+                if abs(i-j)==2: # Ipsilateral
+                    if self.pars.impairment in [1, 3]:
+                        self.phase_bias[i, j] = 0
+                    else:
+                        self.phase_bias[i, j] = np.sign(i-j) * parameters.phase_lag_body
+                elif j-i==1 and i%2==0: #contralateral
+                    if self.pars.impairment in [2, 3]:
+                        self.phase_bias[i, j] = 0
+                    else: 
+                        self.phase_bias[i, j] = np.sign(i-j) * np.pi
+                elif i-j==1 and i%2==1: # contralateral
+                    if self.pars.impairment in [2, 3]:
+                        self.phase_bias[i, j] = 0
+                    else: 
+                        self.phase_bias[i, j] = np.sign(i-j) * np.pi
                 else:
                     self.phase_bias[i, j] = 0
 
