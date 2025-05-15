@@ -1,3 +1,10 @@
+FARMS/
+FARMS.old/
+*.old
+**/__pycache__/
+*.pyc
+.DS_S*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
