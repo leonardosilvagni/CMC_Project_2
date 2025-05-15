@@ -264,7 +264,7 @@ def plot_time_histories_multiple_windows(
             plt.close()
 
 
-def plot_1d(results, labels, n_data=300, log=False, cmap=None):
+def plot_1d(results, labels=["x","y","z"], n_data=300, log=False, cmap=None):
     """Plot result
 
     results - The results are given as a 2d array of dimensions [N, 3].
