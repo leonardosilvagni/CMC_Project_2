@@ -42,7 +42,6 @@ def exercise5(**kwargs):
         #video_name = "exercise5",
         #camera_id=3,
         
-
         **kwargs
     )
 
@@ -53,7 +52,7 @@ def exercise5(**kwargs):
     )
 
         # --- Save plots ---
-    tag = "tag"
+    tag = "ex5"
     plot_phases_ampl(
         controller.times, controller.state,
         title=f"Oscillator_States_{tag}", legend=True
@@ -81,6 +80,7 @@ def exercise5(**kwargs):
         title=f"Trajectory_{tag}"
     )
     plt.show()
+    
 if __name__ == '__main__':
 
     exercise5()
