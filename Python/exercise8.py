@@ -11,6 +11,7 @@ from simulation_parameters import SimulationParameters
 from plotting_common import plot_2d, save_figures
 
 from util.zebrafish_hyperparameters import define_hyperparameters
+import pickle
 hyperparameters = define_hyperparameters()
 REF_JOINT_AMP = hyperparameters["REF_JOINT_AMP"]
 ws_ref = hyperparameters["ws_ref"]
@@ -20,7 +21,7 @@ def exercise8(**kwargs):
 
     pylog.info("Ex 8")
     pylog.info("Implement exercise 8")
-    log_path = './logs/exercise8/'  # path for logging the simulation data
+    log_path = './logs/exercise8bis/'  # path for logging the simulation data
     os.makedirs(log_path, exist_ok=True)
     motor_output_gains = np.array(
         [
@@ -31,8 +32,8 @@ def exercise8(**kwargs):
     )
 
     # Define range for testing, scaled by ws_ref
-    w_strengths  = np.linspace(0, 2, 6) * ws_ref
-    frequencies = np.linspace(3.5,10,6)
+    w_strengths  = np.linspace(0, 2.5, 6) * ws_ref
+    frequencies = np.linspace(6.6,20,20)
     n_iterations = 5001
     # Create a 2D grid for testing feedback strengths vs. entrainment frequencies
     all_pars_grid = [
@@ -48,7 +49,7 @@ def exercise8(**kwargs):
                 headless           = True,
                 cpg_amplitude_gain = motor_output_gains,
                 feedback_weights_ipsi = w,
-                feedback_weights_contra = -w,
+                feedback_weights_contra = -w, 
                 entraining_signals = define_entraining_signals(n_iterations, freq, 45),
                 **kwargs
             )
@@ -58,20 +59,20 @@ def exercise8(**kwargs):
     ]
 
     # Run the simulation for each grid point
-    controllers_ipsi = []
+    controllers = []
     for pars_row in all_pars_grid:
         result_row = run_multiple(pars_row)
-        controllers_ipsi.append(result_row)
+        controllers.append(result_row)
     # Compute the baseline neural frequencies (with w=0) for the different entrainment frequencies.
-    ref_results = controllers_ipsi[0]
+    ref_results = controllers[0]
 
     # For each other value of w, compute differences relative to the baseline.
-    for i, row in enumerate(controllers_ipsi[1:], start=1):
+    for i, row in enumerate(controllers[1:], start=1):
         # The x-axis: difference between the entraining (target) frequency and the baseline neural frequency.
         diff_x = [freq - ref_results[j].metrics["neur_frequency"] for j, freq in enumerate(frequencies)]
         # The y-axis: difference between the actual neural frequency and the baseline neural frequency.
         diff_y = [row[j].metrics["neur_frequency"] - ref_results[j].metrics["neur_frequency"] for j in range(len(row))]
-        plt.plot(diff_x, diff_y, marker='o', linestyle='-', label=f"w = {w_strengths[i]:.2f}")
+        plt.plot(diff_x, diff_y, marker='o', linestyle='-', label=f"w = {w_strengths[i]/ws_ref:.2f}")
 
     plt.xlabel("Entraining frequency difference (Hz)")
     plt.ylabel("Neural frequency difference (Hz)")
@@ -80,7 +81,6 @@ def exercise8(**kwargs):
     plt.grid(True)
     plt.savefig(os.path.join(log_path,"exercise8_frequency_diff"))
     plt.show()
-
 
 if __name__ == '__main__':
 
