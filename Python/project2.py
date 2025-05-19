@@ -15,7 +15,8 @@ def main():
     exercise5()
     exercise6()
     exercise7()
-    exercise8()
+    exercise8(test=False)
+    exercise8(test=True)
     exercise9()
     plot_results.main()
 

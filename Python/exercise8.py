@@ -18,10 +18,12 @@ ws_ref = hyperparameters["ws_ref"]
 
 
 def exercise8(**kwargs):
-
+    test=kwargs.get("test", False)
     pylog.info("Ex 8")
     pylog.info("Implement exercise 8")
-    log_path = './logs/exercise8bis/'  # path for logging the simulation data
+    log_path = './logs/exercise8/'  # path for logging the simulation data
+    if test:
+        log_path = './logs/exercise8bis/'  # path for logging the simulation data
     os.makedirs(log_path, exist_ok=True)
     motor_output_gains = np.array(
         [
@@ -32,8 +34,11 @@ def exercise8(**kwargs):
     )
 
     # Define range for testing, scaled by ws_ref
-    w_strengths  = np.linspace(0, 2.5, 6) * ws_ref
-    frequencies = np.linspace(6.6,20,20)
+    w_strengths  = np.linspace(0, 2, 10) * ws_ref
+    frequencies = np.linspace(3.5,10,20)
+    if test:
+        w_strengths  = np.linspace(0, 2.5, 6) * ws_ref
+        frequencies = np.linspace(6.6,20,20)
     n_iterations = 5001
     # Create a 2D grid for testing feedback strengths vs. entrainment frequencies
     all_pars_grid = [
@@ -79,7 +84,10 @@ def exercise8(**kwargs):
     plt.title("Neural vs. Entraining Frequency Difference")
     plt.legend()
     plt.grid(True)
-    plt.savefig(os.path.join(log_path,"exercise8_frequency_diff"))
+    filename = "exercise8_frequency_diff"
+    if test:
+        filename = "exercise8bis_frequency_diff"
+    plt.savefig(os.path.join(log_path,filename))
     plt.show()
 
 if __name__ == '__main__':

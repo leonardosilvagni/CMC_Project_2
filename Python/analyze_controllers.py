@@ -12,6 +12,6 @@ hyperparameters = define_hyperparameters()
 REF_JOINT_AMP = hyperparameters["REF_JOINT_AMP"]
 ws_ref = hyperparameters["ws_ref"]
 #%%
-log_path = './logs/exercise7/'  # path for logging the simulation data
+log_path = './logs/exercise5/'  # path for logging the simulation data
 controller = load_object('{}controller{}'.format(log_path, 0))  
 #%%
