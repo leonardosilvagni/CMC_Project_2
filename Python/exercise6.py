@@ -70,57 +70,66 @@ def exercise6(**kwargs):
     controllers_contra = run_multiple(all_pars_list_contra)
 
     # Extract and plot metrics for ipsilateral variation
-    ipsi_vals = ipsi_strengths
+    ipsi_vals = ipsi_strengths / ws_ref
     neur_frequency_ipsi = [ctrl.metrics["neur_frequency"] for ctrl in controllers_ipsi]
     neur_twl_ipsi       = [ctrl.metrics["neur_twl"]       for ctrl in controllers_ipsi]
     mech_cot_ipsi       = [ctrl.metrics["mech_cot"]       for ctrl in controllers_ipsi]
     mech_energy_ipsi    = [ctrl.metrics["mech_energy"]    for ctrl in controllers_ipsi]
     mech_speed_ipsi     = [ctrl.metrics["mech_speed_fwd"]   for ctrl in controllers_ipsi]
     mech_torque_ipsi    = [ctrl.metrics["mech_torque"]      for ctrl in controllers_ipsi]
+    join_ampl_ipsi     = [ctrl.metrics["mech_joint_amplitudes"] for ctrl in controllers_ipsi]
     # Plot neural frequency, total wave lag, cost of transport, energy consumption, forward speed, and torque for ipsi variation
-    fig, axs = plt.subplots(2, 3, figsize=(15, 10))
+    fig, axs = plt.subplots(2, 4, figsize=(25, 10))
     axs[0,0].plot(ipsi_vals, neur_frequency_ipsi, marker='o')
     axs[0,0].set_title("Neural Frequency (ipsi)")
     axs[0,1].plot(ipsi_vals, neur_twl_ipsi, marker='o')
     axs[0,1].set_title("Total Wave Lag (ipsi)")
     axs[0,2].plot(ipsi_vals, mech_cot_ipsi, marker='o')
     axs[0,2].set_title("Cost of Transport (ipsi)")
-    axs[1,0].plot(ipsi_vals, mech_energy_ipsi, marker='o')
-    axs[1,0].set_title("Energy Consumption (ipsi)")
-    axs[1,1].plot(ipsi_vals, mech_speed_ipsi, marker='o')
-    axs[1,1].set_title("Forward Speed (ipsi)")
+    axs[0,3].plot(ipsi_vals, mech_energy_ipsi, marker='o')
+    axs[0,3].set_title("Energy Consumption (ipsi)")
+    axs[1,0].plot(ipsi_vals, mech_speed_ipsi, marker='o')
+    axs[1,0].set_title("Forward Speed (ipsi)")
+    axs[1,1].plot(ipsi_vals, join_ampl_ipsi, marker='o')
+    axs[1,1].set_title("Joint Amplitude (ipsi)")
     axs[1,2].plot(ipsi_vals, mech_torque_ipsi, marker='o')
     axs[1,2].set_title("Sum of Torques (ipsi)")
+    axs[1,3].axis('off')  # Hide the last subplot
+    
     plt.tight_layout()
     plt.savefig(os.path.join(log_path,"metrics_ipsi_variation"))
     plt.close(fig)
 
     # Extract and plot metrics for contralateral variation
-    contra_vals = contra_strengths
+    contra_vals = contra_strengths/ws_ref
     neur_frequency_contra = [ctrl.metrics["neur_frequency"] for ctrl in controllers_contra]
     neur_twl_contra       = [ctrl.metrics["neur_twl"]       for ctrl in controllers_contra]
     mech_cot_contra       = [ctrl.metrics["mech_cot"]       for ctrl in controllers_contra]
     mech_energy_contra    = [ctrl.metrics["mech_energy"]    for ctrl in controllers_contra]
     mech_speed_contra     = [ctrl.metrics["mech_speed_fwd"]   for ctrl in controllers_contra]
     mech_torque_contra    = [ctrl.metrics["mech_torque"]      for ctrl in controllers_contra]
+    join_ampl_contra     = [ctrl.metrics["mech_joint_amplitudes"] for ctrl in controllers_contra]
     # Plot neural frequency, total wave lag, cost of transport, energy consumption, forward speed, and torque for contra variation
-    fig, axs = plt.subplots(2, 3, figsize=(15, 10))
+    fig, axs = plt.subplots(2, 4, figsize=(25, 10))
     axs[0,0].plot(contra_vals, neur_frequency_contra, marker='o')
     axs[0,0].set_title("Neural Frequency (contra)")
     axs[0,1].plot(contra_vals, neur_twl_contra, marker='o')
     axs[0,1].set_title("Total Wave Lag (contra)")
     axs[0,2].plot(contra_vals, mech_cot_contra, marker='o')
     axs[0,2].set_title("Cost of Transport (contra)")
-    axs[1,0].plot(contra_vals, mech_energy_contra, marker='o')
-    axs[1,0].set_title("Energy Consumption (contra)")
-    axs[1,1].plot(contra_vals, mech_speed_contra, marker='o')
-    axs[1,1].set_title("Forward Speed (contra)")
+    axs[0,3].plot(contra_vals, mech_energy_contra, marker='o')
+    axs[0,3].set_title("Energy Consumption (contra)")
+    axs[1,0].plot(contra_vals, mech_speed_contra, marker='o')
+    axs[1,0].set_title("Forward Speed (contra)")
+    axs[1,1].plot(contra_vals, join_ampl_contra, marker='o')
+    axs[1,1].set_title("Joint Amplitude (contra)")
     axs[1,2].plot(contra_vals, mech_torque_contra, marker='o')
     axs[1,2].set_title("Sum of Torques (contra)")
+    axs[1,3].axis('off')  # Hide the last subplot
+    
     plt.tight_layout()
     plt.savefig(os.path.join(log_path,"metrics_contra_variation"))
     plt.close(fig)
-
     
 if __name__ == '__main__':
 

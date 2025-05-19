@@ -155,8 +155,8 @@ class AbstractOscillatorController:
         ) 
         if pos is None:
             pos = np.zeros(self.pars.n_joints)
-        s_right = self.W_ipsi * np.maximum(0, pos) + self.W_contra * np.maximum(0, -pos)
-        s_left = self.W_ipsi * np.maximum(0,-pos) + self.W_contra * np.maximum(0,pos)
+        s_left = self.W_ipsi * np.maximum(0, pos) + self.W_contra * np.maximum(0, -pos)
+        s_right = self.W_ipsi * np.maximum(0,-pos) + self.W_contra * np.maximum(0,pos)
         self.s[self.oscillator_phase_l] = s_left
         self.s[self.oscillator_phase_r] = s_right
         dphases = (
