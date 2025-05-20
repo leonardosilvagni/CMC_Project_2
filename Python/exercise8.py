@@ -1,4 +1,4 @@
-
+#%%
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,7 +15,7 @@ import pickle
 hyperparameters = define_hyperparameters()
 REF_JOINT_AMP = hyperparameters["REF_JOINT_AMP"]
 ws_ref = hyperparameters["ws_ref"]
-
+#%%
 
 def exercise8(**kwargs):
     test=kwargs.get("test", False)
@@ -37,8 +37,8 @@ def exercise8(**kwargs):
     w_strengths  = np.linspace(0, 2, 10) * ws_ref
     frequencies = np.linspace(3.5,10,20)
     if test:
-        w_strengths  = np.linspace(0, 2.5, 6) * ws_ref
-        frequencies = np.linspace(6.6,20,20)
+        w_strengths  = np.linspace(0, 5, 30) * ws_ref
+        frequencies = np.linspace(3,30,30)
     n_iterations = 5001
     # Create a 2D grid for testing feedback strengths vs. entrainment frequencies
     all_pars_grid = [
@@ -88,9 +88,70 @@ def exercise8(**kwargs):
     if test:
         filename = "exercise8bis_frequency_diff"
     plt.savefig(os.path.join(log_path,filename))
+    if test:
+        import pickle
+        from scipy.interpolate import RegularGridInterpolator
+        # Prepare raw data storage
+        f_actual_matrix = np.zeros((len(w_strengths) - 1, len(frequencies)))
+        f_ref_array = np.array([ref_results[j].metrics["neur_frequency"] for j in range(len(frequencies))])
+
+        for i, row in enumerate(controllers[1:], start=1):
+            for j, freq in enumerate(frequencies):
+                f_actual = row[j].metrics["neur_frequency"]
+                f_actual_matrix[i - 1, j] = f_actual
+
+        # Save raw data for later recomputation
+        data_structure = {
+            "f_actual_matrix": f_actual_matrix,
+            "frequencies": frequencies,
+            "w_strengths": w_strengths[1:],  # exclude the zero-coupling baseline
+            "f_ref": f_ref_array
+        }
+
+        with open(os.path.join(log_path, "arnold_tongue_raw_data.pkl"), "wb") as f:
+            pickle.dump(data_structure, f)
+
+        # Compute fitness metric
+
+        # Compute fitness metric
+        epsilon = 1e-6
+        fitness_map = 1 - np.abs(f_actual_matrix - frequencies[np.newaxis,:]) / (np.abs(f_actual_matrix - f_ref_array[np.newaxis, :]) + epsilon)
+        fitness_map = np.clip(fitness_map, 0, 1)
+
+        grid_freq = frequencies
+        grid_w = w_strengths / ws_ref
+        interp_func = RegularGridInterpolator(
+        (grid_w, grid_freq),
+        fitness_map,
+        method='linear',
+        bounds_error=False,
+        fill_value=0
+        )
+
+        # Create finer meshgrid
+        fine_freq = np.linspace(frequencies[0], frequencies[-1], 100)
+        fine_w = np.linspace(grid_w[0], grid_w[-1], 100)
+        X_fine, Y_fine = np.meshgrid(fine_freq, fine_w)
+
+        # Evaluate interpolator on the fine grid
+        points = np.array([Y_fine.ravel(), X_fine.ravel()]).T
+        fitness_map_interp = interp_func(points).reshape(X_fine.shape)
+        # Plot the interpolated fitness map
+        X_fine, Y_fine = np.meshgrid(fine_freq, fine_w)
+        plt.figure(figsize=(12, 8))
+        cmap = plt.cm.Reds  # white = low fitness, red = high
+        im = plt.pcolormesh(X_fine, Y_fine, fitness_map_interp, cmap=cmap, shading='auto', vmin=0, vmax=1)
+        cbar = plt.colorbar(im)
+        cbar.set_label("Coupling Fitness (1 = full entrainment)")
+
+        plt.xlabel("Entraining Frequency (Hz)")
+        plt.ylabel("Entraining Gain (w)")
+        plt.tight_layout()
+
+        plt.savefig(os.path.join(log_path, "exercise8_arnold_tongue_fitness_interpolated"))
     plt.show()
 
 if __name__ == '__main__':
 
-    exercise8()
+    exercise8(test=False)
 
