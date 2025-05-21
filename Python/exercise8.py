@@ -34,11 +34,11 @@ def exercise8(**kwargs):
     )
 
     # Define range for testing, scaled by ws_ref
-    w_strengths  = np.linspace(0, 2, 10) * ws_ref
-    frequencies = np.linspace(3.5,10,20)
+    w_strengths  = np.linspace(0, 2, 5) * ws_ref
+    frequencies = np.linspace(3.5,10,10)
     if test:
-        w_strengths  = np.linspace(0, 5, 30) * ws_ref
-        frequencies = np.linspace(3,30,30)
+        w_strengths  = np.linspace(0, 6, 60) * ws_ref
+        frequencies = np.linspace(3,30,60)
     n_iterations = 5001
     # Create a 2D grid for testing feedback strengths vs. entrainment frequencies
     all_pars_grid = [
@@ -64,20 +64,26 @@ def exercise8(**kwargs):
     ]
 
     # Run the simulation for each grid point
-    controllers = []
-    for pars_row in all_pars_grid:
-        result_row = run_multiple(pars_row)
-        controllers.append(result_row)
-    # Compute the baseline neural frequencies (with w=0) for the different entrainment frequencies.
-    ref_results = controllers[0]
+    f_actual_matrix = np.zeros((len(w_strengths) - 1, len(frequencies)))
 
-    # For each other value of w, compute differences relative to the baseline.
-    for i, row in enumerate(controllers[1:], start=1):
-        # The x-axis: difference between the entraining (target) frequency and the baseline neural frequency.
-        diff_x = [freq - ref_results[j].metrics["neur_frequency"] for j, freq in enumerate(frequencies)]
-        # The y-axis: difference between the actual neural frequency and the baseline neural frequency.
-        diff_y = [row[j].metrics["neur_frequency"] - ref_results[j].metrics["neur_frequency"] for j in range(len(row))]
-        plt.plot(diff_x, diff_y, marker='o', linestyle='-', label=f"w = {w_strengths[i]/ws_ref:.2f}")
+
+    for idx, pars_row in enumerate(all_pars_grid):
+        result_row = run_multiple(pars_row)
+        if idx == 0:
+            # The first row is the baseline; save it for later use.
+            ref_results = result_row
+        else:
+            # For subsequent rows, populate the preallocated matrix.
+            for j, res in enumerate(result_row):
+                f_actual_matrix[idx - 1, j] = res.metrics["neur_frequency"]
+
+    f_ref_array = np.array([ref_results[j].metrics["neur_frequency"] for j in range(len(frequencies))])
+    # Compute the x-axis differences once using the baseline neural frequencies.
+    diff_y = f_actual_matrix - f_ref_array[np.newaxis, :]
+    diff_x = frequencies - f_ref_array
+    # For each subsequent w value, compute the neural frequency difference relative to the baseline.
+    for idx, diff_y_row in enumerate(diff_y):
+        plt.plot(diff_x, diff_y_row, marker='o', linestyle='-', label=f"w = {w_strengths[idx+1]/ws_ref:.2f}")
 
     plt.xlabel("Entraining frequency difference (Hz)")
     plt.ylabel("Neural frequency difference (Hz)")
@@ -92,14 +98,6 @@ def exercise8(**kwargs):
         import pickle
         from scipy.interpolate import RegularGridInterpolator
         # Prepare raw data storage
-        f_actual_matrix = np.zeros((len(w_strengths) - 1, len(frequencies)))
-        f_ref_array = np.array([ref_results[j].metrics["neur_frequency"] for j in range(len(frequencies))])
-
-        for i, row in enumerate(controllers[1:], start=1):
-            for j, freq in enumerate(frequencies):
-                f_actual = row[j].metrics["neur_frequency"]
-                f_actual_matrix[i - 1, j] = f_actual
-
         # Save raw data for later recomputation
         data_structure = {
             "f_actual_matrix": f_actual_matrix,
@@ -114,12 +112,14 @@ def exercise8(**kwargs):
         # Compute fitness metric
 
         # Compute fitness metric
-        epsilon = 1e-6
-        fitness_map = 1 - np.abs(f_actual_matrix - frequencies[np.newaxis,:]) / (np.abs(f_actual_matrix - f_ref_array[np.newaxis, :]) + epsilon)
-        fitness_map = np.clip(fitness_map, 0, 1)
-
+        #epsilon = 1e-6
+        #fitness_map = 1 - np.abs(f_actual_matrix - frequencies[np.newaxis,:]) / (np.abs(f_actual_matrix - f_ref_array[np.newaxis, :]) + epsilon)
+        #fitness_map = np.clip(fitness_map, 0, 1)
+        diff_ratio = (data_structure["f_actual_matrix"] - data_structure["f_ref"][np.newaxis, :]) / (data_structure["frequencies"] - data_structure["f_ref"])
+        angles = np.arctan(diff_ratio)
+        fitness_map=angles/(np.pi/4)
         grid_freq = frequencies
-        grid_w = w_strengths / ws_ref
+        grid_w = w_strengths[1:] / ws_ref
         interp_func = RegularGridInterpolator(
         (grid_w, grid_freq),
         fitness_map,
