@@ -18,7 +18,6 @@ ws_ref = hyperparameters["ws_ref"]
 def exercise6(**kwargs):
 
     pylog.info("Ex 6")
-    pylog.info("Implement exercise 6")
     log_path = './logs/exercise6/'  # path for logging the simulation data
     os.makedirs(log_path, exist_ok=True)
 
@@ -98,6 +97,8 @@ def exercise6(**kwargs):
     
     plt.tight_layout()
     plt.savefig(os.path.join(log_path,"metrics_ipsi_variation"))
+    pylog.info("Close figures to continue")
+    plt.show()
     plt.close(fig)
 
     # Extract and plot metrics for contralateral variation
@@ -129,6 +130,8 @@ def exercise6(**kwargs):
     
     plt.tight_layout()
     plt.savefig(os.path.join(log_path,"metrics_contra_variation"))
+    pylog.info("Close figures to continue")
+    plt.show()
     plt.close(fig)
     
 if __name__ == '__main__':

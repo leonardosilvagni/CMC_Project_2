@@ -16,7 +16,6 @@ ws_ref = hyperparameters["ws_ref"]
 def exercise5(**kwargs):
  
     pylog.info("Ex 5")
-    pylog.info("Implement exercise 5")
     log_path = './logs/exercise5/'  # path for logging the simulation data
     os.makedirs(log_path, exist_ok=True)
     motor_output_gains = np.array(
@@ -79,9 +78,11 @@ def exercise5(**kwargs):
         controller,
         title=f"Trajectory_{tag}"
     )
+    pylog.info("Close figures to continue")
     plt.show()
     
 if __name__ == '__main__':
-
+    
     exercise5()
+    
 

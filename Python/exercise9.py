@@ -38,7 +38,6 @@ def exercise9():
     )
 
     pylog.info("Ex 9")
-    pylog.info("Implement exercise 9")
     log_path = './logs/exercise9/'  # path for logging the simulation data
     os.makedirs(log_path, exist_ok=True)
 
@@ -195,6 +194,7 @@ def exercise9():
 
     filepath = os.path.join("figures", "min_contralateral_connections_speed.png")
     plt.savefig(filepath, dpi=300)
+    pylog.info("Close figures to continue")
     plt.show()
 
     

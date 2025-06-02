@@ -20,7 +20,6 @@ ws_ref = hyperparameters["ws_ref"]
 def exercise8(**kwargs):
     test=kwargs.get("test", False)
     pylog.info("Ex 8")
-    pylog.info("Implement exercise 8")
     log_path = './logs/exercise8/'  # path for logging the simulation data
     if test:
         log_path = './logs/exercise8bis/'  # path for logging the simulation data
@@ -149,6 +148,7 @@ def exercise8(**kwargs):
         plt.tight_layout()
 
         plt.savefig(os.path.join(log_path, "exercise8_arnold_tongue_fitness_interpolated"))
+    pylog.info("Close figures to continue")
     plt.show()
 
 if __name__ == '__main__':
