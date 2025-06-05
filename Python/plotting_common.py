@@ -427,7 +427,7 @@ def plot_lateral_difference(times, state, left_idx,right_idx, title, cm="jet", o
     
     
 
-def plot_trajectory( controller, title=None , label=None, color=None, sim_fraction=1):
+def plot_trajectory( controller, title=None , label=None, color=None, sim_fraction=1, new_fig=True):
 
     head_positions = np.array(controller.links_positions)[:, 0, :]
     n_steps = head_positions.shape[0]
@@ -436,7 +436,7 @@ def plot_trajectory( controller, title=None , label=None, color=None, sim_fracti
     head_positions = head_positions[-n_steps_considered:, :2]
 
     """Plot head positions"""
-    plt.figure()
+    if new_fig: plt.figure()
     plt.plot(head_positions[:-1, 0], head_positions[:-1, 1], label=label, color=color)
     plt.xlabel('x [m]')
     plt.ylabel('y [m]')
